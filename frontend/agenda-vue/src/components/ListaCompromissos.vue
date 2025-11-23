@@ -1,22 +1,17 @@
 <script setup>
-import axios from "axios";
-import { ref, onMounted } from "vue";
-import EditarPessoas from "./EditarPessoas.vue";
+import { ref } from 'vue'
+import axios from 'axios'
+import EditarPessoas from './EditarPessoas.vue'
 
-const compromissos = ref([]);
-const editarId = ref(null);
+const props = defineProps({ compromissos: Array })
+const emit = defineEmits(['atualizar'])
 
-const carregar = async () => {
-  const res = await axios.get("http://localhost:3000/compromissos");
-  compromissos.value = res.data;
-};
+const editarId = ref(null)
 
-const excluir = async (id) => {
-  await axios.delete(`http://localhost:3000/compromissos/${id}`);
-  carregar();
-};
-
-onMounted(carregar);
+async function excluir(id) {
+  await axios.delete(`http://localhost:3000/compromissos/${id}`)
+  emit('atualizar')
+}
 </script>
 
 <template>
@@ -26,29 +21,21 @@ onMounted(carregar);
       <p><b>Data/Hora:</b> {{ c.dataHora }}</p>
       <p>{{ c.descricao }}</p>
 
-      <p><b>Pessoas:</b> {{ c.pessoas.join(", ") }}</p>
+      <p><b>Pessoas:</b>
+        <span v-for="(p, index) in c.pessoas" :key="p._id">
+          {{ p.nome }} ({{ p.funcao }})<span v-if="index < c.pessoas.length - 1">, </span>
+        </span>
+      </p>
 
-      <button @click="editarId = c._id">Editar Pessoas</button>
-      <button @click="excluir(c._id)">Excluir Compromisso</button>
+      <button @click="editarId = c._id" class="btn btn-primary">Editar Pessoas</button>
+      <button @click="excluir(c._id)" class="btn btn-danger">Excluir Compromisso</button>
 
       <EditarPessoas
         v-if="editarId === c._id"
         :compromisso="c"
         @fechar="editarId = null"
-        @atualizar="carregar"
+        @atualizar="emit('atualizar')"
       />
     </div>
   </div>
 </template>
-
-<style>
-.card {
-  background: #2b2b2b;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-}
-button {
-  margin-right: 10px;
-}
-</style>

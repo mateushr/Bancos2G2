@@ -1,18 +1,24 @@
 <script setup>
 import { ref } from 'vue'
+const emit = defineEmits(['fechar', 'salvar'])
 
 const nome = ref('')
 const email = ref('')
 const funcao = ref('')
 
-const emit = defineEmits(['fechar'])
+async function salvarPessoa() {
+  await fetch('http://localhost:3000/pessoas', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ nome: nome.value, email: email.value, funcao: funcao.value })
+  })
 
-function salvarPessoa() {
-  // enviar para backend via fetch/axios
-  console.log({ nome: nome.value, email: email.value, funcao: funcao.value })
+  nome.value = ''
+  email.value = ''
+  funcao.value = ''
 
-  // fechar o modal após salvar
-  emit('fechar')
+  emit('salvar') 
+  emit('fechar') 
 }
 </script>
 

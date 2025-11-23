@@ -1,77 +1,53 @@
 <script setup>
-import { ref } from 'vue'
-import ListaCompromissos from './components/ListaCompromissos.vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import FormPessoa from './components/FormPessoa.vue'
 import FormCompromisso from './components/FormCompromisso.vue'
-import FormPessoa from './components/FormPessoa.vue' // novo componente de pessoa
+import ListaCompromissos from './components/ListaCompromissos.vue'
+import './assets/estilos.css'
 
-const showFormPessoa = ref(false) // controla se o modal está aberto
+const showFormPessoa = ref(false)
+const todasPessoas = ref([])
+const compromissos = ref([])
 
-function abrirFormPessoa() {
-  showFormPessoa.value = true
+function abrirFormPessoa() { showFormPessoa.value = true }
+function fecharFormPessoa() { showFormPessoa.value = false }
+
+async function carregarDados() {
+  const resPessoas = await axios.get('http://localhost:3000/pessoas')
+  todasPessoas.value = resPessoas.data
+
+  const resComp = await axios.get('http://localhost:3000/compromissos')
+  compromissos.value = resComp.data.items
 }
 
-function fecharFormPessoa() {
-  showFormPessoa.value = false
-}
+onMounted(carregarDados)
 </script>
 
 <template>
   <div class="container">
     <h1>Sistema de Agenda</h1>
 
-    <!-- Botão no topo -->
+
     <button @click="abrirFormPessoa" class="btn btn-primary mb-3">
       Adicionar Pessoa
     </button>
 
-    <!-- Modal Popup -->
+  
     <div v-if="showFormPessoa" class="modal-backdrop">
       <div class="modal-content">
         <h3>Nova Pessoa</h3>
-        <FormPessoa @fechar="fecharFormPessoa" />
+        <FormPessoa @fechar="fecharFormPessoa" @salvar="carregarDados" />
         <button @click="fecharFormPessoa" class="btn btn-secondary mt-2">Cancelar</button>
       </div>
     </div>
 
-    <FormCompromisso />
+
+    <FormCompromisso :pessoas="todasPessoas" @salvar="carregarDados" />
+
 
     <h2>Compromissos Cadastrados</h2>
-    <ListaCompromissos />
+    <ListaCompromissos :compromissos="compromissos" @atualizar="carregarDados" />
   </div>
 </template>
 
-<style scoped>
-body {
-  background: #202020;
-  color: #fff;
-  font-family: Arial;
-}
-
-.container {
-  width: 80%;
-  margin: auto;
-  padding: 20px;
-}
-
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-</style>

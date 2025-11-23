@@ -30,11 +30,3 @@ const salvar = async () => {
   </div>
 </template>
 
-<style>
-.popup {
-  margin-top: 15px;
-  padding: 10px;
-  background: #444;
-  border-radius: 8px;
-}
-</style>

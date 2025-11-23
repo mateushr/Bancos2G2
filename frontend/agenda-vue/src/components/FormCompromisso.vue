@@ -1,31 +1,39 @@
 <script setup>
-import axios from "axios";
-import { ref } from "vue";
+import { ref } from 'vue'
+import axios from 'axios'
 
-const dataHora = ref("");
-const titulo = ref("");
-const descricao = ref("");
-const pessoasTexto = ref("");
+const props = defineProps({ pessoas: Array })
+const emit = defineEmits(['salvar'])
 
-const cadastrar = async () => {
-  const pessoas = pessoasTexto.value.split(",").map(p => p.trim());
+const dataHora = ref('')
+const titulo = ref('')
+const descricao = ref('')
+const pessoasSelecionadas = ref([])
 
-  await axios.post("http://localhost:3000/compromissos", {
+async function cadastrar() {
+  if (!titulo.value || !dataHora.value) return alert('Título e data/hora obrigatórios!')
+
+  await axios.post('http://localhost:3000/compromissos', {
     dataHora: dataHora.value,
     titulo: titulo.value,
     descricao: descricao.value,
-    pessoas: pessoas
-  });
+    pessoas: pessoasSelecionadas.value
+  })
 
-  alert("Compromisso cadastrado!");
-  window.location.reload();
-};
+  dataHora.value = ''
+  titulo.value = ''
+  descricao.value = ''
+  pessoasSelecionadas.value = []
+
+  emit('salvar')
+  alert('Compromisso cadastrado!')
+}
 </script>
 
 <template>
-  <div class="form">
+  <div class="form-compromisso mb-4">
     <h2>Novo Compromisso</h2>
-    
+
     <label>Data e Hora:</label>
     <input type="datetime-local" v-model="dataHora" />
 
@@ -35,29 +43,13 @@ const cadastrar = async () => {
     <label>Descrição:</label>
     <textarea v-model="descricao"></textarea>
 
-    <label>Pessoas (separe por vírgula):</label>
-    <input type="text" v-model="pessoasTexto" />
+    <label>Pessoas:</label>
+    <select v-model="pessoasSelecionadas" multiple>
+      <option v-for="p in pessoas" :key="p._id" :value="p">
+        {{ p.nome }} ({{ p.funcao }})
+      </option>
+    </select>
 
-    <button @click="cadastrar">Cadastrar</button>
+    <button @click="cadastrar" class="btn btn-primary mt-2">Cadastrar</button>
   </div>
 </template>
-
-<style>
-.form {
-  background: #333;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-input, textarea {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 8px;
-}
-
-button {
-  padding: 10px;
-  cursor: pointer;
-}
-</style>

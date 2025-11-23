@@ -80,8 +80,21 @@ function validateObjectId(req, res, next) {
   next();
 }
 
+//rotas
+const Pessoa = mongoose.model('Pessoa', pessoaSchema);
 
-// Listar 
+app.get('/pessoas', async (req, res) => {
+  const pessoas = await Pessoa.find().sort({ nome: 1 });
+  res.json(pessoas);
+});
+
+app.post('/pessoas', validate(validatePessoaSchema), async (req, res) => {
+  const created = await Pessoa.create(req.body);
+  res.status(201).json(created);
+});
+
+
+// Listar compromissos
 app.get('/compromissos', async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, parseInt(req.query.limit) || 20);
