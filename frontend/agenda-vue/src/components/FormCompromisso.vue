@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
-
+import Multiselect from 'vue-multiselect'
+import 'vue-multiselect/dist/vue-multiselect.min.css'
 const props = defineProps({ pessoas: Array })
 const emit = defineEmits(['salvar'])
 
@@ -44,11 +45,14 @@ async function cadastrar() {
     <textarea v-model="descricao"></textarea>
 
     <label>Pessoas:</label>
-    <select v-model="pessoasSelecionadas" multiple>
-      <option v-for="p in pessoas" :key="p._id" :value="p">
-        {{ p.nome }} ({{ p.funcao }})
-      </option>
-    </select>
+      <multiselect
+        v-model="pessoasSelecionadas"
+        :options="pessoas"
+        :multiple="true"
+        :label="'nome'"
+        :track-by="'_id'"
+        placeholder="Selecione pessoas"
+      />
 
     <button @click="cadastrar" class="btn btn-primary mt-2">Cadastrar</button>
   </div>

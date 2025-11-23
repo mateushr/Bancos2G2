@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import Multiselect from 'vue-multiselect'
+import 'vue-multiselect/dist/vue-multiselect.min.css'
 import FormPessoa from './components/FormPessoa.vue'
 import FormCompromisso from './components/FormCompromisso.vue'
 import ListaCompromissos from './components/ListaCompromissos.vue'
@@ -20,6 +22,13 @@ async function carregarDados() {
   const resComp = await axios.get('http://localhost:3000/compromissos')
   compromissos.value = resComp.data.items
 }
+
+onMounted(async () => {
+  const res = await axios.get('http://localhost:3000/pessoas')
+  todasPessoas.value = res.data
+
+  pessoasSelecionadas.value = [...todasPessoas.value.slice(0, 2)] 
+})
 
 onMounted(carregarDados)
 </script>
@@ -43,7 +52,7 @@ onMounted(carregarDados)
     </div>
 
 
-    <FormCompromisso :pessoas="todasPessoas" @salvar="carregarDados" />
+    <FormCompromisso :pessoas="todasPessoas" @salvar="carregarDados"/>
 
 
     <h2>Compromissos Cadastrados</h2>

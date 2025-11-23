@@ -28,6 +28,8 @@ const pessoaSchema = new mongoose.Schema({
   funcao: { type: String }
 });
 
+const Pessoa = mongoose.model('Pessoa', pessoaSchema);
+
 // Modelo Mongoose
 const compromissoSchema = new mongoose.Schema({
   dataHora: { type: Date, required: true },
@@ -81,8 +83,6 @@ function validateObjectId(req, res, next) {
 }
 
 //rotas
-const Pessoa = mongoose.model('Pessoa', pessoaSchema);
-
 app.get('/pessoas', async (req, res) => {
   const pessoas = await Pessoa.find().sort({ nome: 1 });
   res.json(pessoas);

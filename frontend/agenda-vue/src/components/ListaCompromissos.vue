@@ -18,7 +18,7 @@ async function excluir(id) {
   <div>
     <div v-for="c in compromissos" :key="c._id" class="card">
       <h3>{{ c.titulo }}</h3>
-      <p><b>Data/Hora:</b> {{ c.dataHora }}</p>
+      <p><b>Data/Hora:</b> {{ new Date(c.dataHora).toLocaleString('pt-BR') }}</p>
       <p>{{ c.descricao }}</p>
 
       <p><b>Pessoas:</b>
