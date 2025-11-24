@@ -44,9 +44,7 @@ module.exports = { Compromisso };
 
 // Esquemas Joi para validação
 const validatePessoaSchema = Joi.object({
-  nome: Joi.string().min(1).required(),
-  email: Joi.string().email().optional(),
-  funcao: Joi.string().optional()
+  nome: Joi.string().min(1).required()
 });
 
 const compromissoCreateSchema = Joi.object({
