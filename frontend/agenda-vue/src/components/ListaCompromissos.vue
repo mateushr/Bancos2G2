@@ -76,7 +76,6 @@ async function excluir(id) {
       />
     </div>
 
-    <!-- MODAL — fora do v-for -->
     <div v-if="editandoCompromisso" class="modal-overlay">
       <div class="modal-content">
         <h2>Editar Compromisso</h2>
