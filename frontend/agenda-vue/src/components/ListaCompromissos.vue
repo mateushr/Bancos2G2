@@ -1,16 +1,43 @@
 <script setup>
-import { ref } from 'vue'
-import axios from 'axios'
-import EditarPessoas from './EditarPessoas.vue'
+import { ref } from "vue";
+import axios from "axios";
+import EditarPessoas from "./EditarPessoas.vue";
 
-const props = defineProps({ compromissos: Array })
-const emit = defineEmits(['atualizar'])
+const props = defineProps({ compromissos: Array });
+const emit = defineEmits(["atualizar"]);
 
-const editarId = ref(null)
+const editarId = ref(null);
 
+// Controle do modal de edição do compromisso
+const editandoCompromisso = ref(false);
+const compromissoEdit = ref({});
+
+// Abrir modal
+function editarCompromisso(compromisso) {
+  compromissoEdit.value = { ...compromisso };
+  editandoCompromisso.value = true;
+}
+
+// Salvar edição no backend
+async function salvarEdicao() {
+  await axios.put(`http://localhost:3000/compromissos/${compromissoEdit.value._id}`, {
+    titulo: compromissoEdit.value.titulo,
+    descricao: compromissoEdit.value.descricao,
+  });
+
+  editandoCompromisso.value = false;
+  emit("atualizar");
+}
+
+// Cancelar edição
+function cancelarEdicao() {
+  editandoCompromisso.value = false;
+}
+
+// Excluir compromisso
 async function excluir(id) {
-  await axios.delete(`http://localhost:3000/compromissos/${id}`)
-  emit('atualizar')
+  await axios.delete(`http://localhost:3000/compromissos/${id}`);
+  emit("atualizar");
 }
 </script>
 
@@ -18,17 +45,28 @@ async function excluir(id) {
   <div>
     <div v-for="c in compromissos" :key="c._id" class="card">
       <h3>{{ c.titulo }}</h3>
-      <p><b>Data/Hora:</b> {{ new Date(c.dataHora).toLocaleString('pt-BR') }}</p>
+      <p><b>Data/Hora:</b> {{ new Date(c.dataHora).toLocaleString("pt-BR") }}</p>
       <p>{{ c.descricao }}</p>
 
-      <p><b>Pessoas:</b>
+      <p>
+        <b>Pessoas:</b>
         <span v-for="(p, index) in c.pessoas" :key="p._id">
-          {{ p.nome }} ({{ p.funcao }})<span v-if="index < c.pessoas.length - 1">, </span>
+          {{ p.nome }} ({{ p.funcao }})
+          <span v-if="index < c.pessoas.length - 1">, </span>
         </span>
       </p>
 
-      <button @click="editarId = c._id" class="btn btn-primary">Editar Pessoas</button>
-      <button @click="excluir(c._id)" class="btn btn-danger">Excluir Compromisso</button>
+      <button @click="editarId = c._id" class="btn btn-primary">
+        Editar Pessoas
+      </button>
+
+      <button @click="editarCompromisso(c)" class="btn btn-warning">
+        Editar Compromisso
+      </button>
+
+      <button @click="excluir(c._id)" class="btn btn-danger">
+        Excluir Compromisso
+      </button>
 
       <EditarPessoas
         v-if="editarId === c._id"
@@ -37,5 +75,58 @@ async function excluir(id) {
         @atualizar="emit('atualizar')"
       />
     </div>
+
+    <!-- MODAL — fora do v-for -->
+    <div v-if="editandoCompromisso" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Editar Compromisso</h2>
+
+        <label>Título:</label>
+        <input v-model="compromissoEdit.titulo" type="text" class="form-control" />
+
+        <label>Descrição:</label>
+        <textarea v-model="compromissoEdit.descricao" class="form-control"></textarea>
+
+        <div class="modal-actions">
+          <button @click="salvarEdicao" class="btn btn-success">Salvar</button>
+          <button @click="cancelarEdicao" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style>
+.card {
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 400px;
+  border-radius: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+</style>

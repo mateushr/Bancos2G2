@@ -23,13 +23,6 @@ async function carregarDados() {
   compromissos.value = resComp.data.items
 }
 
-onMounted(async () => {
-  const res = await axios.get('http://localhost:3000/pessoas')
-  todasPessoas.value = res.data
-
-  pessoasSelecionadas.value = [...todasPessoas.value.slice(0, 2)] 
-})
-
 onMounted(carregarDados)
 </script>
 
@@ -37,12 +30,10 @@ onMounted(carregarDados)
   <div class="container">
     <h1>Sistema de Agenda</h1>
 
-
     <button @click="abrirFormPessoa" class="btn btn-primary mb-3">
       Adicionar Pessoa
     </button>
 
-  
     <div v-if="showFormPessoa" class="modal-backdrop">
       <div class="modal-content">
         <h3>Nova Pessoa</h3>
@@ -51,12 +42,9 @@ onMounted(carregarDados)
       </div>
     </div>
 
-
     <FormCompromisso :pessoas="todasPessoas" @salvar="carregarDados"/>
-
 
     <h2>Compromissos Cadastrados</h2>
     <ListaCompromissos :compromissos="compromissos" @atualizar="carregarDados" />
   </div>
 </template>
-

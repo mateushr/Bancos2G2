@@ -1,67 +1,94 @@
 <script setup>
-import axios from "axios";
-import { ref, onMounted, watch } from "vue";
-import Multiselect from "vue-multiselect";
-import "vue-multiselect/dist/vue-multiselect.min.css";
+import { ref } from 'vue'
+import axios from 'axios'
+import EditarPessoas from './EditarPessoas.vue'
 
-const props = defineProps(["compromisso"]);
-const emit = defineEmits(["fechar", "atualizar"]);
+// Props e emits
+const props = defineProps({ compromissos: Array })
+const emit = defineEmits(['atualizar'])
 
-const todasPessoas = ref([]);        
-const pessoasSelecionadas = ref([]); 
-const carregado = ref(false);        // Flag para indicar que os dados foram carregados
+// Controle de edição de pessoas
+const editarId = ref(null)
 
-const carregarPessoas = async () => {
-  try {
-    const res = await axios.get("http://localhost:3000/pessoas");
-    todasPessoas.value = res.data;
-    pessoasSelecionadas.value = props.compromisso.pessoas.map(p => {
-      return res.data.find(t => t._id === p._id) || p;
-    });
+// Controle do modal de edição de compromisso
+const editandoCompromisso = ref(false)
+const compromissoEdit = ref({
+  _id: null,
+  titulo: "",
+  descricao: ""
+})
 
-    carregado.value = true;
-  } catch (err) {
-    console.error("Erro ao carregar pessoas:", err);
+function editarCompromisso(compromisso) {
+  editandoCompromisso.value = true
+  compromissoEdit.value = {
+    _id: compromisso._id,
+    titulo: compromisso.titulo,
+    descricao: compromisso.descricao
   }
-};
+}
 
-onMounted(carregarPessoas);
+function cancelarEdicao() {
+  editandoCompromisso.value = false
+}
 
-const salvar = async () => {
-  try {
-    await axios.put(
-      `http://localhost:3000/compromissos/${props.compromisso._id}/pessoas`,
-      { pessoas: pessoasSelecionadas.value }
-    );
+async function salvarEdicao() {
+  await axios.put(`http://localhost:3000/compromissos/${compromissoEdit.value._id}`, {
+    titulo: compromissoEdit.value.titulo,
+    descricao: compromissoEdit.value.descricao
+  })
 
-    emit("atualizar"); 
-    emit("fechar");    
-  } catch (err) {
-    console.error("Erro ao salvar pessoas:", err);
-    alert("Não foi possível salvar as alterações.");
-  }
-};
+  editandoCompromisso.value = false
+  emit('atualizar')
+}
+
+async function excluir(id) {
+  await axios.delete(`http://localhost:3000/compromissos/${id}`)
+  emit('atualizar')
+}
 </script>
 
 <template>
-  <div class="popup">
-    <h3>Editar Pessoas</h3>
+  <div>
+    <div v-for="c in compromissos" :key="c._id" class="card">
+      <h3>{{ c.titulo }}</h3>
+      <p><b>Data/Hora:</b> {{ new Date(c.dataHora).toLocaleString('pt-BR') }}</p>
+      <p>{{ c.descricao }}</p>
 
-    <multiselect
-      v-if="carregado"
-      v-model="pessoasSelecionadas"
-      :options="todasPessoas"
-      :multiple="true"
-      :label="'nome'"
-      :track-by="'_id'"
-      placeholder="Selecione pessoas"
-    />
+      <p><b>Pessoas:</b>
+        <span v-for="(p, index) in c.pessoas" :key="p._id">
+          {{ p.nome }} ({{ p.funcao }})
+          <span v-if="index < c.pessoas.length - 1">, </span>
+        </span>
+      </p>
 
-    <p v-else>Carregando pessoas...</p>
+      <button @click="editarId = c._id" class="btn btn-primary">Editar Pessoas</button>
+      <button @click="editarCompromisso(c)" class="btn btn-warning">Editar Compromisso</button>
+      <button @click="excluir(c._id)" class="btn btn-danger">Excluir Compromisso</button>
 
-    <div class="botoes">
-      <button @click="salvar" class="btn btn-primary">Salvar</button>
-      <button @click="$emit('fechar')" class="btn btn-secondary">Fechar</button>
+      <EditarPessoas
+        v-if="editarId === c._id"
+        :compromisso="c"
+        @fechar="editarId = null"
+        @atualizar="emit('atualizar')"
+      />
+    </div>
+
+    <!-- MODAL EDITAR COMPROMISSO -->
+    <div v-if="editandoCompromisso" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Editar Compromisso</h2>
+
+        <label>Título:</label>
+        <input v-model="compromissoEdit.titulo" type="text" class="form-control" />
+
+        <label>Descrição:</label>
+        <textarea v-model="compromissoEdit.descricao" class="form-control"></textarea>
+
+        <div class="modal-actions">
+          <button @click="salvarEdicao" class="btn btn-success">Salvar</button>
+          <button @click="cancelarEdicao" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
